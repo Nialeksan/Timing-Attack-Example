@@ -5,7 +5,7 @@
 -- ==================================================
 -- timing-attack-pia
 -- Initial schema and seed data
--- Runs automatically on first DB startup (empyt pgdata volume)
+-- Runs automatically on first DB startup (empty pgdata volume)
 -- To re-run: docker compose down -v && docker compose up
 -- ==================================================
 
@@ -31,7 +31,7 @@ CREATE TABLE users (
     security_question VARCHAR(255) NOT NULL,
     security_answer_hash VARCHAR(255) NOT NULL,
     role VARCHAR(10) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-    created_at TIMESTAMPZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_users_email ON users (email);
@@ -45,9 +45,25 @@ CREATE TABLE sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     token VARCHAR(128) NOT NULL UNIQUE,
-    created_at TIMESTAMPZ NOT NULL DEFAULT NOW(),
-    expires_at TIMESTAMPZ NOT NULL
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE INDEX idx_sessions_token ON sessions (token);
 CREATE INDEX idx_sessions_user_id ON sessions (user_id);
+
+-- -------------------------------------------------------
+-- Table: password_resets
+-- One row per active passwrod reset flow. Created by /forgot-password,
+-- marked verified by /forgot-password/answer, consumed by
+-- /forgot-password/reset (wi=hich deletes the row).
+-- -------------------------------------------------------
+CREATE TABLE password_resets (
+    token VARCHAR(128) PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    answer_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_password_resets_user_id ON password_resets (user_id);
