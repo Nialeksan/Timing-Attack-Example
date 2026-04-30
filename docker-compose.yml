@@ -3,6 +3,8 @@ services:
     image: postgres:16-alpine
     container_name: pia-db
     restart: unless-stopped
+    networks:
+      - pia-network
     env_file:
       - ./db/.env
     ports:
@@ -16,10 +18,24 @@ services:
       timeout: 5s
       retries: 10
 
+  seeder:
+    build: ./seeder
+    container_name: pia-seeder
+    env_file:
+      - ./seeder/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - pia-network
+
   backend:
     build: ./backend
     container_name: pia-backend
     restart: unless-stopped
+    networks:
+      - pia-network
     env_file:
       - ./backend/.env
     ports:
@@ -27,6 +43,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      seeder:
+        condition: service_completed_successfully
     volumes:
       - ./backend/src:/app/src
     command: npm run dev
@@ -35,6 +53,8 @@ services:
     build: ./frontend
     container_name: pia-frontend
     restart: unless-stopped
+    networks:
+      - pia-network
     env_file:
       - ./frontend/.env
     ports:
@@ -47,3 +67,7 @@ services:
 
 volumes:
   pgdata:
+
+networks:
+  pia-network:
+    driver: bridge
