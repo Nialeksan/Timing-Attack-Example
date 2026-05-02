@@ -219,7 +219,7 @@ router.post('/forgot-password/reset', async (req, res) => {
         await client.query('BEGIN');
         await client.query(
             `UPDATE users SET password_hash = $1
-            WHERE ID = $2`,
+            WHERE id = $2`,
             [newHash, rows[0].user_id]
         );
         await client.query(
