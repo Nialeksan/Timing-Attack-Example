@@ -12,6 +12,12 @@ import rateLimit from 'express-rate-limit';
 
 import { pool } from './db.js';
 
+import { loadSession } from './middleware/session.js';
+// When you export default, you can bring it with a local alias. 
+import authRouter from './routes/auth.js';
+import authSecureRouter from './routes/auth.secure.js';
+import adminRouter from './routes/admin.js';
+
 const app = express();
 
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
@@ -57,6 +63,7 @@ app.use(cors({
 // -------------------------------------------------------------------
 app.use(express.json());
 app.use(cookieParser());
+app.use(loadSession); // Reads the cookie
 
 // -------------------------------------------------------------------
 // Lightweight request logger: Useful for the live demo to show the attacker's
@@ -72,6 +79,10 @@ app.use((req, _res, next) => {
 // -------------------------------------------------------------------
 // Routes
 // -------------------------------------------------------------------
+app.use('/api/auth', authRouter);
+app.use('/api/auth', authSecureRouter);
+app.use('/api/admin', adminRouter);
+
 app.get('/api/health', async (_req, res) => {
     try {
         await pool.query('SELECT 1');
