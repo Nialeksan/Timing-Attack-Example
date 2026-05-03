@@ -27,7 +27,7 @@ import {
     destroySession,
     requireAuth,
 } from '../middleware/session.js';
-import { pool } from '../db.js';
+import { pool, query } from '../db.js';
 
 const BCRYPT_ROUNDS = 10;
 const RESET_TTL_MINUTES = 30;
@@ -56,7 +56,7 @@ router.post('/login-secure', async (req, res) => {
         return res.status(400).json({ message: 'Email and password required' });
     }
 
-    const { rows } = await pool.query(
+    const { rows } = await query(
         'SELECT id, password_hash FROM users WHERE email = $1',
         [email]
     );
@@ -103,7 +103,7 @@ router.post('/forgot-password-secure', async (req, res) => {
         return res.status(400).json({ message: 'Email required' });
     }
 
-    const { rows } = await pool.query(
+    const { rows } = await query(
         'SELECT id, security_question FROM users WHERE email = $1',
         [email]
     );
@@ -119,7 +119,7 @@ router.post('/forgot-password-secure', async (req, res) => {
     const resetToken = crypto.randomBytes(64).toString('hex');
     const expiresAt = new Date(Date.now() + RESET_TTL_MINUTES * 60 * 1000);
 
-    await pool.query(
+    await query(
         'INSERT INTO password_resets (token, user_id, expires_at) VALUES ($1, $2, $3)',
         [resetToken, user.id, expiresAt]
     );
@@ -149,7 +149,7 @@ router.post('/forgot-password-secure/answer', async (req, res) => {
         return res.status(400).json({ message: 'Token and answer required' });
     }
 
-    const { rows } = await pool.query(
+    const { rows } = await query(
         `SELECT pr.token, pr.expires_at, u.security_answer_hash
         FROM password_resets pr
         JOIN users u ON u.id = pr.user_id
@@ -177,7 +177,7 @@ router.post('/forgot-password-secure/answer', async (req, res) => {
         return res.status(401).json({ message: 'Invalid or expired token' });
     }
 
-    await pool.query(
+    await query(
         'UPDATE password_resets SET answer_verified = TRUE WHERE token = $1',
         [reset_token]
     );
@@ -204,7 +204,7 @@ router.post('/forgot-password-secure/reset', async (req, res) => {
         return res.status(400).json({ message: 'Token and new password required' });
     }
 
-    const { rows } = await pool.query(
+    const { rows } = await query(
         `SELECT user_id, answer_verified, expires_at
         FROM password_resets
         WHERE token = $1`,
@@ -223,7 +223,7 @@ router.post('/forgot-password-secure/reset', async (req, res) => {
 
     // Update the password and consume the tokenin a single transaction
     // so a crash mid-flow does not leave a stale token usable
-    const client = await pool.connect(); // We need to tie the entire transaction to a single connection. If we use pool.query, BEGIN and UPDATE might be in different pool connections, breaking database logic
+    const client = await pool.connect(); // We need to tie the entire transaction to a single connection. If we use query, BEGIN and UPDATE might be in different pool connections, breaking database logic
     try {
         // BEGIN, UPDATE, DELETE, and COMMIT travels through the same connection tunel
         // To avoid idle in transaction in case something breaks, we separate sql instructions into different awaits
