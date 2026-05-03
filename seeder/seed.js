@@ -4,7 +4,7 @@
 // Inserts 1 admin + 4 users only when the users table is empty
 // On subsequent runs, detects exiting data and exits without changes
 // ====================================================
-import bcrypt from 'bycrypt';
+import bcrypt from 'bcrypt';
 import pg from 'pg';
 
 const { Client } = pg;

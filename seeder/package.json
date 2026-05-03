@@ -9,7 +9,7 @@
         "start": "node seed.js"
     },
     "dependencies": {
-        "bycrypt": "^5.1.1",
+        "bcrypt": "^5.1.1",
         "pg": "^8.11.3"
     }
 }
