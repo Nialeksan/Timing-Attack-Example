@@ -21,7 +21,8 @@ export default function Login() {
         });
 
         if (res.ok) {
-            navigate('/dashboard');
+            const data = await res.json();
+            navigate(data.role === 'admin' ? '/admin' : '/dashboard');
         } else {
             const data = await res.json();
             setError(data.message ?? 'Login failed');

@@ -83,7 +83,7 @@ router.post('/login-secure', async (req, res) => {
     const token = await createSession(user.id);
     setSessionCookie(res, token);
 
-    res.json({ message: 'Logged in successfully!' });
+    res.json({ message: 'Logged in successfully!', role: user.role });
 });
 
 // -----------------------------------------------------
