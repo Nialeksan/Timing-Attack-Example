@@ -92,16 +92,18 @@ export default function ForgotPassword() {
                 {error && <p className="form-error">{error}</p>}
 
                 <div className="toggle-wrapper">
-                    <label htmlFor="secureToggle" className="toggle-label">
+                    <span className="toggle-label">
                         {secure ? '🔒 Secure' : '🔓 Vulnerable'}
+                    </span>
+                    <label className="toggle-switch" htmlFor="secureToggle">
+                        <input 
+                            id="secureToggle"
+                            type="checkbox"
+                            checked={secure}
+                            onChange={() => setSecure(s => !s)} 
+                        />
+                        <span className="toggle-slider"></span>
                     </label>
-                    <input 
-                        className="toggle-input"
-                        id="secureToggle"
-                        type="checkbox"
-                        checked={secure}
-                        onChange={() => setSecure(s => !s)} 
-                    />
                 </div>
 
                 {step === 1 && (
