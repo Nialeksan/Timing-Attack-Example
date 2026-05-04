@@ -254,7 +254,7 @@ router.post('/login', async (req, res) => {
     }
 
     const { rows } = await query(
-        'SELECT id, password_hash FROM users WHERE email = $1',
+        'SELECT id, password_hash, role FROM users WHERE email = $1',
         [email]
     );
 
